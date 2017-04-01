@@ -1,0 +1,118 @@
+---
+title: "Wine_Classification"
+author: "Xi Liang"
+date: "3/29/2017"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(magrittr)
+library(ggplot2)
+library(ggcorrplot)
+library(caret)
+```
+
+```{r}
+red_wine_data <- read_csv2("../Wine_Cls/data/winequality-red.csv",
+                            col_types = list(
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number()
+                           ))
+```
+
+```{r}
+white_wine_data <- read_csv2("../Wine_Cls/data/winequality-white.csv",
+                           col_types = list(
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number(),
+                             col_number()
+                           ))
+```
+
+```{r}
+glimpse(red_wine_data)
+```
+
+```{r}
+glimpse(white_wine_data)
+```
+
+Check column classes
+```{r}
+apply(red_wine_data, 2, class)
+apply(white_wine_data,2,class)
+```
+
+```{r}
+
+```
+
+
+## Quality Distribution
+```{r}
+ggplot(red_wine_data, aes(quality)) +
+  geom_histogram(stat = "count") +
+  labs(title='Distribution of Red Wine Quality') +
+  xlab('Wine Quality') +
+  ylab('Count')
+```
+
+```{r}
+ggplot(red_wine_data, aes(x = names(red_wine_data[,1]), y = red_wine_data[,1], fill = names(red_wine_data[,1]))) +
+  geom_violin() +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,2]), y = red_wine_data[,2], fill = names(red_wine_data[,2]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,3]), y = red_wine_data[,3], fill = names(red_wine_data[,3]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,4]), y = red_wine_data[,3], fill = names(red_wine_data[,4]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,5]), y = red_wine_data[,5], fill = names(red_wine_data[,5]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,6]), y = red_wine_data[,6], fill = names(red_wine_data[,6]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,7]), y = red_wine_data[,7], fill = names(red_wine_data[,7]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,8]), y = red_wine_data[,8], fill = names(red_wine_data[,9]))) +
+  geom_violin(data = red_wine_data,aes(x = names(red_wine_data[,10]), y = red_wine_data[,10], fill = names(red_wine_data[,10])))
+  
+
+  
+```
+
+
+```{r}
+myControl <- trainControl(
+  method = "cv", number = 10,
+  summaryFunction = twoClassSummary,
+  classProbs = TRUE, # IMPORTANT!
+  verboseIter = TRUE
+)
+
+model <- train(quality ~., red_wine_data, method = 'lm',trControl = myControl, preProcess = 'medianImpute')
+```
+
+```{r}
+model <- lm(quality ~., red_wine_data)
+dResid <- resid(model)
+qqnorm(dResid)
+qqline(dResid)
+predicted <- predict(model, red_wine_data, tpe='response')
+actual <- red_wine_data[,12]
+sqrt(mean((round(predicted) - actual)^2))
+```
+
